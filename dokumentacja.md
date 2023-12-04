@@ -20,7 +20,7 @@ Do weryfikacji poprawności pakietów jest wykorzystywany kod CRC16. Nie ma pono
 
 ### Typy
 
-#### `uint`:
+#### `uint`
 
 - **`uint8`** - unsigned int 8 bit (może reprezentować boolean. Wartość 1 = true, 0 = false)
 
@@ -28,11 +28,11 @@ Do weryfikacji poprawności pakietów jest wykorzystywany kod CRC16. Nie ma pono
 
 - **`uint32`** - unsigned in 32 bit
 
-#### `float`:
+#### `float`
 
 Typ float 32 bit pojedyńczej precyzji.
 
-#### `Vector2`:
+#### `Vector2`
 
 Składa się z:
 
