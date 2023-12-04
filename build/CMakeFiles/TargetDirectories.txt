@@ -1,0 +1,3 @@
+/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/server.dir
+/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/edit_cache.dir
+/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/rebuild_cache.dir
