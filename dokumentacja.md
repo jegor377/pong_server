@@ -10,11 +10,13 @@ Powinien obsługiwać do **1024** klientów i **512** sesji. Każda gra odbywa s
 
 Aktualna pozycja piłki oraz sygnały o stanie rozgrywki są brane od maina gry, aby uprościć aplikację i nie implementować logiki gry w serwerze. Serwer odpowiada tylko za wymianę informacji, ale fizyka gry jest przetwarzana u klientów (u maina gry). 
 
+Co iterację sprawdza czy ostatni komunikat od klienta był później niż 10s temu i jeśli tak to go usuwa z tablicy połączonych (rozłącza go).
+
 ## Protokół
 
 ### Sposób działania
 
-Komunikacja po **UDP**. Klient i serwer wymieniają się komunikatami o określonej strukturze i maksymalnym rozmiarze **1024B** (pakiety o zmiennym rozmiarze). Serwer pamięta adresy klientów w lobby i identyfikuje ich po przydzielanym ID po połączeniu do serwera.
+Komunikacja po **UDP**. Klient i serwer wymieniają się komunikatami o określonej strukturze i maksymalnym rozmiarze **512B** (pakiety o zmiennym rozmiarze). Serwer pamięta adresy klientów w lobby i identyfikuje ich po przydzielanym ID po połączeniu do serwera.
 
 Do weryfikacji poprawności pakietów jest wykorzystywany kod CRC16. Nie ma ponownego wysyłania pakietu, jeśli jest uszkodzony.
 
@@ -55,7 +57,7 @@ Każde pole następujące po sobie od lewej do prawej, jest przesunięte w pakie
 #### Pakiet
 
 ```
-[type:1][size:2][data:size][crc:2]
+[preamble:3][type:1][size:2][data:size][crc:2]
 ```
 
 | Nazwa | Typ         | Opis                                        |
@@ -65,7 +67,13 @@ Każde pole następujące po sobie od lewej do prawej, jest przesunięte w pakie
 | data  | uint8[size] | Dane (struktura zależna od typu komunikatu) |
 | crc   | uint16      | Kod CRC do sprawdzenia poprawności          |
 
-**Każdy** pakiet może mieć rozmiar od **5B** do **1024B**.
+**Każdy** pakiet może mieć rozmiar od **8B** do **512B**.
+
+### Preambuła
+
+```
+0x01 0x02 0x03
+```
 
 ### Kod do obliczania CRC
 
@@ -396,6 +404,18 @@ Dane:
 | session_id | `uint16` | Identyfikator sesji                    |
 | client_id  | `uint16` | Identyfikator klienta, który zwyciężył |
 
+### 21: Sygnał, że żyję (Klient -> Serwer)
+
+Poinformowanie serwera o wciąż aktywnym połączeniu z klientem.
+
+Dane są puste.
+
+### 22: Rozłączono (Serwer -> Klient)
+
+Poinformowanie klienta, który nie odpowiada ponad 10s, że został rozłączony.
+
+Dane są puste.
+
 ## Podsumowanie
 
 | Klient -> Serwer                         | Serwer -> Klient                         |
@@ -409,8 +429,6 @@ Dane:
 | 14: Prześlij pozycję piłki               | 11: Status prośby o wyjście z sesji      |
 | 16: Prześlij pozycję gracza              | 13: Gra rozpoczęta                       |
 | 18: Poinformuj serwer o uzyskaniu punktu | 15: Poinformuj o pozycji piłki           |
-|                                          | 17: Poinformuj o pozycji gracza          |
+| 21: Sygnał, że żyję                      | 17: Poinformuj o pozycji gracza          |
 |                                          | 19: Poinformuj gracza o uzyskaniu punktu |
 |                                          | 20: Poinformuj o wygraniu                |
-
-
