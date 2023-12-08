@@ -79,7 +79,6 @@ Każde pole następujące po sobie od lewej do prawej, jest przesunięte w pakie
 
 ```cpp
 #include <stdint.h>
-#include <stddef.h>
 
 uint16_t crc16_mcrf4xx(uint16_t crc, uint8_t *data, size_t len)
 {

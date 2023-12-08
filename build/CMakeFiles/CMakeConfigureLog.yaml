@@ -533,3 +533,155 @@ events:
       
       
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.28/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/local/share/cmake-3.28/Modules/CheckCSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "/usr/local/share/cmake-3.28/Modules/FindThreads.cmake:97 (CHECK_C_SOURCE_COMPILES)"
+      - "/usr/local/share/cmake-3.28/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "CMakeLists.txt:4 (find_package)"
+    checks:
+      - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
+    directories:
+      source: "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-dbWDB5"
+      binary: "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-dbWDB5"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: '/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-dbWDB5'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_8cfa1/fast
+        /usr/bin/make  -f CMakeFiles/cmTC_8cfa1.dir/build.make CMakeFiles/cmTC_8cfa1.dir/build
+        make[1]: Entering directory '/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-dbWDB5'
+        Building C object CMakeFiles/cmTC_8cfa1.dir/src.c.o
+        /usr/bin/gcc -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_8cfa1.dir/src.c.o -c "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-dbWDB5/src.c"
+        Linking C executable cmTC_8cfa1
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8cfa1.dir/link.txt --verbose=1
+        /usr/bin/gcc CMakeFiles/cmTC_8cfa1.dir/src.c.o -o cmTC_8cfa1 
+        /usr/bin/ld: CMakeFiles/cmTC_8cfa1.dir/src.c.o: in function `main':
+        src.c:(.text+0x46): undefined reference to `pthread_create'
+        /usr/bin/ld: src.c:(.text+0x52): undefined reference to `pthread_detach'
+        /usr/bin/ld: src.c:(.text+0x5e): undefined reference to `pthread_cancel'
+        /usr/bin/ld: src.c:(.text+0x6f): undefined reference to `pthread_join'
+        collect2: error: ld returned 1 exit status
+        make[1]: *** [CMakeFiles/cmTC_8cfa1.dir/build.make:99: cmTC_8cfa1] Error 1
+        make[1]: Leaving directory '/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-dbWDB5'
+        make: *** [Makefile:127: cmTC_8cfa1/fast] Error 2
+        
+      exitCode: 2
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.28/Modules/CheckLibraryExists.cmake:69 (try_compile)"
+      - "/usr/local/share/cmake-3.28/Modules/FindThreads.cmake:112 (CHECK_LIBRARY_EXISTS)"
+      - "/usr/local/share/cmake-3.28/Modules/FindThreads.cmake:175 (_threads_check_lib)"
+      - "CMakeLists.txt:4 (find_package)"
+    checks:
+      - "Looking for pthread_create in pthreads"
+    directories:
+      source: "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-SD9XT2"
+      binary: "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-SD9XT2"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_HAVE_PTHREADS_CREATE"
+      cached: true
+      stdout: |
+        Change Dir: '/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-SD9XT2'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_faefe/fast
+        /usr/bin/make  -f CMakeFiles/cmTC_faefe.dir/build.make CMakeFiles/cmTC_faefe.dir/build
+        make[1]: Entering directory '/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-SD9XT2'
+        Building C object CMakeFiles/cmTC_faefe.dir/CheckFunctionExists.c.o
+        /usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=pthread_create -o CMakeFiles/cmTC_faefe.dir/CheckFunctionExists.c.o -c "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-SD9XT2/CheckFunctionExists.c"
+        Linking C executable cmTC_faefe
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_faefe.dir/link.txt --verbose=1
+        /usr/bin/gcc  -DCHECK_FUNCTION_EXISTS=pthread_create CMakeFiles/cmTC_faefe.dir/CheckFunctionExists.c.o -o cmTC_faefe  -lpthreads 
+        /usr/bin/ld: cannot find -lpthreads
+        collect2: error: ld returned 1 exit status
+        make[1]: *** [CMakeFiles/cmTC_faefe.dir/build.make:99: cmTC_faefe] Error 1
+        make[1]: Leaving directory '/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-SD9XT2'
+        make: *** [Makefile:127: cmTC_faefe/fast] Error 2
+        
+      exitCode: 2
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.28/Modules/CheckLibraryExists.cmake:69 (try_compile)"
+      - "/usr/local/share/cmake-3.28/Modules/FindThreads.cmake:112 (CHECK_LIBRARY_EXISTS)"
+      - "/usr/local/share/cmake-3.28/Modules/FindThreads.cmake:176 (_threads_check_lib)"
+      - "CMakeLists.txt:4 (find_package)"
+    checks:
+      - "Looking for pthread_create in pthread"
+    directories:
+      source: "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-TeX2O1"
+      binary: "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-TeX2O1"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_HAVE_PTHREAD_CREATE"
+      cached: true
+      stdout: |
+        Change Dir: '/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-TeX2O1'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_186d7/fast
+        /usr/bin/make  -f CMakeFiles/cmTC_186d7.dir/build.make CMakeFiles/cmTC_186d7.dir/build
+        make[1]: Entering directory '/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-TeX2O1'
+        Building C object CMakeFiles/cmTC_186d7.dir/CheckFunctionExists.c.o
+        /usr/bin/gcc   -DCHECK_FUNCTION_EXISTS=pthread_create -o CMakeFiles/cmTC_186d7.dir/CheckFunctionExists.c.o -c "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-TeX2O1/CheckFunctionExists.c"
+        Linking C executable cmTC_186d7
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_186d7.dir/link.txt --verbose=1
+        /usr/bin/gcc  -DCHECK_FUNCTION_EXISTS=pthread_create CMakeFiles/cmTC_186d7.dir/CheckFunctionExists.c.o -o cmTC_186d7  -lpthread 
+        make[1]: Leaving directory '/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-TeX2O1'
+        
+      exitCode: 0
+...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.28/Modules/FindThreads.cmake:136 (try_compile)"
+      - "/usr/local/share/cmake-3.28/Modules/FindThreads.cmake:169 (_threads_check_flag_pthread)"
+      - "CMakeLists.txt:6 (find_package)"
+    checks:
+      - "Check if compiler accepts -pthread"
+    directories:
+      source: "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-QcaskK"
+      binary: "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-QcaskK"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "THREADS_HAVE_PTHREAD_ARG"
+      cached: true
+      stdout: |
+        Change Dir: '/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-QcaskK'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_a219b/fast
+        /usr/bin/make  -f CMakeFiles/cmTC_a219b.dir/build.make CMakeFiles/cmTC_a219b.dir/build
+        make[1]: Entering directory '/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-QcaskK'
+        Building C object CMakeFiles/cmTC_a219b.dir/CheckForPthreads.c.o
+        /usr/bin/gcc    -o CMakeFiles/cmTC_a219b.dir/CheckForPthreads.c.o -c "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-QcaskK/CheckForPthreads.c"
+        Linking C executable cmTC_a219b
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a219b.dir/link.txt --verbose=1
+        /usr/bin/gcc CMakeFiles/cmTC_a219b.dir/CheckForPthreads.c.o -o cmTC_a219b  -pthread 
+        make[1]: Leaving directory '/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build/CMakeFiles/CMakeScratch/TryCompile-QcaskK'
+        
+      exitCode: 0
+...

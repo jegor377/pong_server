@@ -10,11 +10,15 @@
 	{
 		"commands" : 
 		[
-			"add_executable"
+			"add_executable",
+			"set_property",
+			"find_package",
+			"target_link_libraries"
 		],
 		"files" : 
 		[
-			"CMakeLists.txt"
+			"CMakeLists.txt",
+			"/usr/local/share/cmake-3.28/Modules/FindThreads.cmake"
 		],
 		"nodes" : 
 		[
@@ -26,6 +30,28 @@
 				"file" : 0,
 				"line" : 4,
 				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 6,
+				"parent" : 0
+			},
+			{
+				"file" : 1,
+				"parent" : 2
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 238,
+				"parent" : 3
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 7,
+				"parent" : 0
 			}
 		]
 	},
@@ -36,6 +62,10 @@
 			[
 				{
 					"fragment" : "-g -std=gnu++2a"
+				},
+				{
+					"backtrace" : 5,
+					"fragment" : "-pthread"
 				}
 			],
 			"language" : "CXX",
@@ -66,6 +96,11 @@
 			{
 				"fragment" : "",
 				"role" : "flags"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-pthread",
+				"role" : "libraries"
 			}
 		],
 		"language" : "CXX"

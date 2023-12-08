@@ -47,6 +47,11 @@
     "cstring": "cpp",
     "cuchar": "cpp",
     "codecvt": "cpp",
-    "ctime": "cpp"
+    "ctime": "cpp",
+    "chrono": "cpp",
+    "condition_variable": "cpp",
+    "ratio": "cpp",
+    "mutex": "cpp",
+    "thread": "cpp"
   }
 }
