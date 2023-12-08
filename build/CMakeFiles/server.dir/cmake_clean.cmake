@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/server.dir/packet.cpp.o"
+  "CMakeFiles/server.dir/packet.cpp.o.d"
   "CMakeFiles/server.dir/server.cpp.o"
   "CMakeFiles/server.dir/server.cpp.o.d"
   "CMakeFiles/server.dir/types.cpp.o"

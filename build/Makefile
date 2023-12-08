@@ -129,6 +129,30 @@ server/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/build
 .PHONY : server/fast
 
+packet.o: packet.cpp.o
+.PHONY : packet.o
+
+# target to build an object file
+packet.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/packet.cpp.o
+.PHONY : packet.cpp.o
+
+packet.i: packet.cpp.i
+.PHONY : packet.i
+
+# target to preprocess a source file
+packet.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/packet.cpp.i
+.PHONY : packet.cpp.i
+
+packet.s: packet.cpp.s
+.PHONY : packet.s
+
+# target to generate assembly for a file
+packet.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/packet.cpp.s
+.PHONY : packet.cpp.s
+
 server.o: server.cpp.o
 .PHONY : server.o
 
@@ -186,6 +210,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... server"
+	@echo "... packet.o"
+	@echo "... packet.i"
+	@echo "... packet.s"
 	@echo "... server.o"
 	@echo "... server.i"
 	@echo "... server.s"

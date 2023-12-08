@@ -187,9 +187,7 @@ CMakeFiles/server.dir/server.cpp.o: \
  /usr/include/c++/9/bits/atomic_lockfree_defines.h \
  /usr/include/c++/9/backward/auto_ptr.h /usr/include/c++/9/bit \
  /usr/include/c++/9/pstl/glue_memory_defs.h \
- /usr/include/c++/9/pstl/execution_defs.h /usr/include/c++/9/mutex \
- /usr/include/c++/9/bits/std_mutex.h \
- /usr/include/c++/9/bits/unique_lock.h /usr/include/c++/9/cstring \
+ /usr/include/c++/9/pstl/execution_defs.h /usr/include/c++/9/cstring \
  /usr/include/string.h /usr/include/strings.h \
  /usr/include/c++/9/algorithm \
  /usr/include/c++/9/pstl/glue_algorithm_defs.h \
@@ -202,4 +200,19 @@ CMakeFiles/server.dir/server.cpp.o: \
  /usr/include/c++/9/bits/erase_if.h /usr/include/c++/9/vector \
  /usr/include/c++/9/bits/stl_vector.h \
  /usr/include/c++/9/bits/stl_bvector.h /usr/include/c++/9/bits/vector.tcc \
- /mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr\ 5/server/types.hpp
+ /usr/include/semaphore.h /usr/include/x86_64-linux-gnu/bits/semaphore.h \
+ /usr/include/c++/9/mutex /usr/include/c++/9/bits/std_mutex.h \
+ /usr/include/c++/9/bits/unique_lock.h /usr/include/c++/9/queue \
+ /usr/include/c++/9/deque /usr/include/c++/9/bits/stl_deque.h \
+ /usr/include/c++/9/bits/deque.tcc /usr/include/c++/9/bits/stl_queue.h \
+ /usr/include/c++/9/iomanip /usr/include/c++/9/locale \
+ /usr/include/c++/9/bits/locale_facets_nonio.h \
+ /usr/include/x86_64-linux-gnu/c++/9/bits/time_members.h \
+ /usr/include/x86_64-linux-gnu/c++/9/bits/messages_members.h \
+ /usr/include/libintl.h /usr/include/c++/9/bits/codecvt.h \
+ /usr/include/c++/9/bits/locale_facets_nonio.tcc \
+ /usr/include/c++/9/bits/locale_conv.h \
+ /usr/include/c++/9/bits/quoted_string.h /usr/include/c++/9/sstream \
+ /usr/include/c++/9/bits/sstream.tcc \
+ /mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr\ 5/server/types.hpp \
+ /mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr\ 5/server/packet.hpp

@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/packet.cpp" "CMakeFiles/server.dir/packet.cpp.o" "gcc" "CMakeFiles/server.dir/packet.cpp.o.d"
   "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/server.cpp" "CMakeFiles/server.dir/server.cpp.o" "gcc" "CMakeFiles/server.dir/server.cpp.o.d"
   "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/types.cpp" "CMakeFiles/server.dir/types.cpp.o" "gcc" "CMakeFiles/server.dir/types.cpp.o.d"
   )

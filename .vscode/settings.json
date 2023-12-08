@@ -52,6 +52,7 @@
     "condition_variable": "cpp",
     "ratio": "cpp",
     "mutex": "cpp",
-    "thread": "cpp"
+    "thread": "cpp",
+    "iomanip": "cpp"
   }
 }

@@ -10,5 +10,11 @@
   "command": "/usr/bin/g++   -g -std=gnu++2a -pthread -o CMakeFiles/server.dir/types.cpp.o -c \"/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/types.cpp\"",
   "file": "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/types.cpp",
   "output": "CMakeFiles/server.dir/types.cpp.o"
+},
+{
+  "directory": "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/build",
+  "command": "/usr/bin/g++   -g -std=gnu++2a -pthread -o CMakeFiles/server.dir/packet.cpp.o -c \"/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/packet.cpp\"",
+  "file": "/mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr 5/server/packet.cpp",
+  "output": "CMakeFiles/server.dir/packet.cpp.o"
 }
 ]

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.27)
 project(pong_server)
 set(CMAKE_CXX_STANDARD 20)
-add_executable(server server.cpp types.cpp)
+add_executable(server server.cpp types.cpp packet.cpp)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 target_link_libraries(server PRIVATE Threads::Threads)
