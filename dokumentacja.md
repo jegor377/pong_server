@@ -134,7 +134,7 @@ Dane są puste.
 
 ### 3: Rozłącz (Klient -> Serwer)
 
-Prośba o odłączenie od serwera. Klient nie oczekuje na odpowiedź. Jak jest w trakcie gry to wyrzuca go z sesji i kończy sesję.
+Prośba o odłączenie od serwera. Klient nie oczekuje na odpowiedź. Jak jest w trakcie gry, to przeciwnik dostaje komunikat o statusie rozłączenia tego gracza i przerywa sesję.
 
 Dane:
 
@@ -148,7 +148,7 @@ Dane:
 
 ### 4: Utwórz sesję (Klient -> Serwer)
 
-Prośba o utworzenie sesji. W wyniku serwer powinien utworzyć sesję, przypisać tam klienta i odesłać identyfikator sesji.
+Prośba o utworzenie sesji. W wyniku serwer powinien utworzyć sesję i przypisać tam klienta.
 
 Dane:
 
@@ -188,23 +188,25 @@ Informacja od serwera o nieudanej próbie utworzenia sesji.
 
 Dane są puste.
 
-### 7: Sesja przestała istnieć (Serwer -> Klient)
+### 7: Poinformuj o ustawieniu gotowości (Serwer -> Klient)
 
-Informacja od serwera o zniszczeniu sesji.
+Poinformowanie klienta o zmianie gotowości jakiegoś klienta w sesji.
 
 Dane:
 
 ```
-[session_id:2]
+[session_id:2][client_id:2][readiness:1]
 ```
 
-| Nazwa      | Typ      | Opis                |
-| ---------- | -------- | ------------------- |
-| session_id | `uint16` | Identyfikator sesji |
+| Nazwa      | Typ        | Opis                                                 |
+| ---------- | ---------- | ---------------------------------------------------- |
+| session_id | `uint16_t` | Identyfikator sesji                                  |
+| client_id  | `uint16_t` | Identyfikator klienta, któremu zmieniła się gotowość |
+| readiness  | `uint8_t`  | Status gotowości (1 - gotowy, 0 - niegotowy)         |
 
 ### 8: Przyłącz do sesji (Klient -> Serwer)
 
-Prośba o przyłączenie klient do sesji. Jeśli się uda to serwer wyśle komunikat #5.
+Prośba o przyłączenie klient do sesji. Jeśli się uda to serwer wyśle komunikat #5. Klient, który dołącza do sesji, nigdy nie jest gotowy.
 
 Dane:
 
@@ -264,7 +266,7 @@ Dane:
 
 ### 12: Ustaw gotowość do gry (Klient -> Serwer)
 
-Poinformowanie serwera o gotowości klienta do rozpoczęcia gry. Jeśli gra się zakończyła zwycięstwem jednego z graczy, to ten komunikat mówi serwerowi, żeby uruchomił rozgrywkę jeszcze raz od nowa.
+Poinformowanie serwera o gotowości klienta do rozpoczęcia gry. Jeśli gra się zakończyła zwycięstwem jednego z graczy, to ten komunikat mówi serwerowi, żeby uruchomił rozgrywkę jeszcze raz od nowa. Jeśli dwóch klientów jest gotowych to gra się automatycznie rozpoczyna.
 
 Dane:
 
@@ -299,12 +301,11 @@ Poinformowanie serwera o pozycji piłki przez maina.
 Dane:
 
 ```
-[client_id:2][session_id:2][ball_pos:12][ball_dir:12]
+[session_id:2][ball_pos:12][ball_dir:12]
 ```
 
 | Nazwa      | Typ       | Opis                          |
 | ---------- | --------- | ----------------------------- |
-| client_id  | `uint16`  | Identyfikator klienta         |
 | session_id | `uint16`  | Identyfikator sesji           |
 | ball_pos   | `Vector2` | Pozycja piłki                 |
 | ball_dir   | `Vector2` | Kierunek poruszania się piłki |
@@ -331,15 +332,14 @@ Poinformowanie serwera o pozycji paletki gracza.
 Dane:
 
 ```
-[client_id:2][session_id:2][pos:12][dir:12]
+[client_id:2][pos:12][dir:12]
 ```
 
-| Nazwa      | Typ       | Opis                                                                     |
-| ---------- | --------- | ------------------------------------------------------------------------ |
-| client_id  | `uint16`  | Identyfikator gracza                                                     |
-| session_id | `uint16`  | Identyfikator sesji                                                      |
-| pos        | `Vector2` | Pozycja paletki gracza                                                   |
-| dir        | `Vector2` | Kierunek poruszania się paletki gracza na potrzeby przewidywania pozycji |
+| Nazwa     | Typ       | Opis                                                                     |
+| --------- | --------- | ------------------------------------------------------------------------ |
+| client_id | `uint16`  | Identyfikator gracza                                                     |
+| pos       | `Vector2` | Pozycja paletki gracza                                                   |
+| dir       | `Vector2` | Kierunek poruszania się paletki gracza na potrzeby przewidywania pozycji |
 
 ### 17: Poinformuj o pozycji gracza (Serwer -> Klient)
 
@@ -348,15 +348,14 @@ Poinformowanie gracza o pozycji innego gracza.
 Dane:
 
 ```
-[session_id:2][client_id:2][pos:12][dir:12]
+[client_id:2][pos:12][dir:12]
 ```
 
-| Nazwa      | Typ       | Opis                                                       |
-| ---------- | --------- | ---------------------------------------------------------- |
-| session_id | `uint16`  | Identyfikator sesji                                        |
-| client_id  | `uint16`  | Identyfikator gracza, którego dotyczy informacja o pozycji |
-| pos        | `Vector2` | Pozycja paletki gracza                                     |
-| dir        | `Vector2` | Kierunek poruszania się paletki gracza                     |
+| Nazwa     | Typ       | Opis                                                       |
+| --------- | --------- | ---------------------------------------------------------- |
+| client_id | `uint16`  | Identyfikator gracza, którego dotyczy informacja o pozycji |
+| pos       | `Vector2` | Pozycja paletki gracza                                     |
+| dir       | `Vector2` | Kierunek poruszania się paletki gracza                     |
 
 ### 18: Poinformuj serwer o uzyskaniu punktu (Main -> Serwer)
 
@@ -408,7 +407,15 @@ Dane:
 
 Poinformowanie serwera o wciąż aktywnym połączeniu z klientem.
 
-Dane są puste.
+Dane:
+
+```
+[client_id:2]
+```
+
+| Nazwa     | Typ        | Opis                  |
+| --------- | ---------- | --------------------- |
+| client_id | `uint16_t` | Identyfikator klienta |
 
 ### 22: Rozłączono (Serwer -> Klient)
 

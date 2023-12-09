@@ -56,6 +56,10 @@ struct Client {
   bool available;
   sockaddr_in addr;
   timestamp last_msg_timestamp;
+  bool ready;
+  uint32_t score;
+  types::Vector2 pos;
+  types::Vector2 dir;
 };
 
 struct Session {
@@ -63,6 +67,9 @@ struct Session {
   bool available;
   Client *main;
   Client *secondary;
+  bool game_active;
+  types::Vector2 ball_pos;
+  types::Vector2 ball_dir;
 };
 
 Client clients[CLIENT_COUNT];
@@ -93,9 +100,31 @@ void use_client(uint16_t id, sockaddr_in addr);
 void use_session(uint16_t id, uint16_t main_id);
 void disconnect_stale_clients();
 void disconnect_client(uint16_t id, bool inform);
-void destroy_session(uint16_t id, packet::SessionDestroyedReason reason);
+void destroy_session(uint16_t id);
 void connect_client(sockaddr_in addr);
 void create_session(uint16_t main_id);
+void disconnect_from_session(uint16_t session_id, uint16_t client_id);
+void assign_to_session(uint16_t session_id, uint16_t client_id);
+void set_client_ready(uint16_t client_id, uint16_t session_id, packet::Readiness readiness);
+void set_ball_pos(uint16_t session_id, types::Vector2 &ball_pos, types::Vector2 &ball_dir);
+void set_player_pos(uint16_t client_id, types::Vector2 &player_pos, types::Vector2 &player_dir);
+void handle_client_alive(sockaddr_in addr, uint16_t client_id);
+void score_point(uint16_t session_id, uint16_t client_id);
+void set_client_msg_time(uint16_t client_id);
+
+// send packet functions
+void send_connected_packet(sockaddr_in *addr, uint16_t client_id);
+void send_could_not_connect_packet(sockaddr_in *addr);
+void send_disconnected_packet(sockaddr_in *addr);
+void send_assigned_to_session_packet(sockaddr_in *addr, uint16_t session_id, uint16_t client_id, packet::ClientType type);
+void send_could_not_create_session(sockaddr_in *addr);
+void send_session_disconnect_status_packet(sockaddr_in *addr, uint16_t session_id, uint16_t client_id, packet::SessionDisconnectStatus status);
+void send_could_not_assign_to_session_packet(sockaddr_in *addr, uint16_t session_id);
+void send_inform_client_ready_packet(sockaddr_in *addr, uint16_t session_id, uint16_t client_id, packet::Readiness readiness);
+void send_game_started_packet(sockaddr_in *addr, uint16_t session_id);
+void send_ball_pos_packet(sockaddr_in *addr, Session *session);
+void send_point_scored_packet(sockaddr_in *addr, Session *session);
+void send_player_pos_packet(sockaddr_in *addr, Client *client);
 
 int main() {
   sem_init(&free_space, 0, MAX_PACKET_COUNT);
@@ -257,6 +286,45 @@ void process_packets() {
           uint16_t main_id = packet::get_id_from_packet(packet, 0);
           create_session(main_id);
         } break;
+        case packet::PacketType::ASSIGN_TO_SESSION: {
+          uint16_t client_id = packet::get_id_from_packet(packet, 0);
+          uint16_t session_id = packet::get_id_from_packet(packet, 2);
+          assign_to_session(session_id, client_id);
+        } break;
+        case packet::PacketType::DISCONNECT_FROM_SESSION: {
+          uint16_t session_id = packet::get_id_from_packet(packet, 0);
+          uint16_t client_id = packet::get_id_from_packet(packet, 2);
+          disconnect_from_session(session_id, client_id);
+        } break;
+        case packet::PacketType::SET_READY: {
+          uint16_t client_id = packet::get_id_from_packet(packet, 0);
+          uint16_t session_id = packet::get_id_from_packet(packet, 2);
+          packet::Readiness readiness = static_cast<packet::Readiness>(packet.data[4]);
+          set_client_ready(client_id, session_id, readiness);
+        } break;
+        case packet::PacketType::SET_BALL_POS: {
+          uint16_t session_id = packet::get_id_from_packet(packet, 0);
+          types::Vector2 ball_pos, ball_dir;
+          ball_pos = types::decode_vec2(&packet.data[2]);
+          ball_dir = types::decode_vec2(&packet.data[2+12]);
+          set_ball_pos(session_id, ball_pos, ball_dir);
+        } break;
+        case packet::PacketType::SET_PLAYER_POS: {
+          uint16_t client_id = packet::get_id_from_packet(packet, 0);
+          types::Vector2 player_pos, player_dir;
+          player_pos = types::decode_vec2(&packet.data[4]);
+          player_dir = types::decode_vec2(&packet.data[4+12]);
+          set_player_pos(client_id, player_pos, player_dir);
+        } break;
+        case packet::PacketType::POINT_SCORED: {
+          uint16_t session_id = packet::get_id_from_packet(packet, 0);
+          uint16_t client_id = packet::get_id_from_packet(packet, 2);
+          score_point(session_id, client_id);
+        } break;
+        case packet::PacketType::IM_ALIVE: {
+          uint16_t client_id = packet::get_id_from_packet(packet, 0);
+          handle_client_alive(packet.clientaddr, client_id);
+        } break;
       }
     }
   }
@@ -296,9 +364,10 @@ int find_available_session_id() {
 }
 
 void use_client(uint16_t id, sockaddr_in addr) {
-  clients[id].available = false;
-  clients[id].last_msg_timestamp = std::chrono::system_clock::now();
-  clients[id].addr = addr;
+  Client *client = &clients[id];
+  client->available = false;
+  client->last_msg_timestamp = std::chrono::system_clock::now();
+  client->addr = addr;
 }
 
 void use_session(uint16_t id, uint16_t main_id) {
@@ -319,26 +388,29 @@ void disconnect_stale_clients() {
 }
 
 void disconnect_client(uint16_t id, bool inform) {
+  Client *client = &clients[id];
   if(clients[id].available == true) {
-    log_message("Tried to disconnect already disconnected client with id = " + std::to_string(id));
+    log_message("Tried to disconnect already disconnected client (id = " + std::to_string(id) + ")");
     return;
   }
   packet::SendData packet;
   packet::make_disconnected_packet(&packet);
-  sockaddr_in client_addr = clients[id].addr;
-  clients[id].available = true;
-  if(clients[id].session != nullptr) {
-    destroy_session(clients[id].session->id, packet::SessionDestroyedReason::PLAYER_LEFT);
+  sockaddr_in client_addr = client->addr;
+  if(client->session != nullptr) {
+    disconnect_from_session(client->session->id, id);
   }
-  clients[id].session = nullptr;
+  client->available = true;
   if(inform) send_packet(&client_addr, packet);
-  log_message("Disconnected client with id = " + std::to_string(id));
+  log_message("Disconnected client (id = " + std::to_string(id) + ")");
 }
 
-void destroy_session(uint16_t id, packet::SessionDestroyedReason reason) {
-  sessions[id].available = true;
-  sessions[id].main = nullptr;
-  sessions[id].secondary = nullptr;
+void destroy_session(uint16_t id) {
+  Session *session = &sessions[id];
+  session->available = true;
+  session->main = nullptr;
+  session->secondary = nullptr;
+  session->game_active = false;
+  log_message("Destroyed session (session_id = " + std::to_string(id) + ")");
 }
 
 void connect_client(sockaddr_in addr) {
@@ -384,13 +456,24 @@ void process_logs() {
 }
 
 void create_session(uint16_t main_id) {
+  set_client_msg_time(main_id);
+
   int available_id = find_available_session_id();
+  Client *client = &clients[main_id];
   packet::SendData packet;
-  if(available_id != -1) {
-    use_session(available_id, main_id);
-    packet::make_assigned_to_session_packet(&packet, available_id, main_id, packet::ClientType::MAIN);
+  if(available_id != -1 && !client->available) {
+    if(client->session != nullptr) {
+      log_message("RESEND: Created session (session_id = "+std::to_string(available_id)+") and assigned client (client_id = "+std::to_string(main_id)+") as main.");
+      packet::make_assigned_to_session_packet(&packet, available_id, main_id, packet::ClientType::MAIN);
+    } else {
+      use_session(available_id, main_id);
+      client->session = &sessions[available_id];
+      log_message("Created session (session_id = "+std::to_string(available_id)+") and assigned client (client_id = "+std::to_string(main_id)+") as main.");
+      packet::make_assigned_to_session_packet(&packet, available_id, main_id, packet::ClientType::MAIN);
+    }
   } else {
-    packet::make_could_not_create_session(&packet);
+    log_message("Failed at creating session.");
+    packet::make_could_not_create_session_packet(&packet);
   }
   send_packet(&clients[main_id].addr, packet);
 }
@@ -401,38 +484,259 @@ void disconnect_from_session(uint16_t session_id, uint16_t client_id) {
   Client *main = session->main;
   Client *secondary = session->secondary;
 
-  packet::SendData packet;
-  bool has_main = main != nullptr;
-  bool has_secondary = secondary != nullptr;
-  
+  set_client_msg_time(client_id);
 
-  if(!session->available) {
+  packet::SendData packet;
+
+  if(!session->available) {  
+    bool has_main = main != nullptr;
+    bool has_secondary = secondary != nullptr;
+
     if(main == client) {
+      main->ready = false;
+      log_message("Disconnected client (client_id = "+std::to_string(client_id)+") from session (session_id = "+std::to_string(session_id)+")");
       packet::make_session_disconnect_status_packet(&packet, session_id, client_id, packet::SessionDisconnectStatus::SUCCESS);
+      main->session = nullptr;
       session->main = nullptr;
       send_packet(&client->addr, packet);
       if(has_secondary) {
+        secondary->ready = false;
+        log_message("Client (client_id = "+std::to_string(secondary->id)+") became MAIN in session (session_id = "+std::to_string(session_id)+")");
         send_packet(&secondary->addr, packet);
         session->main = secondary;
         session->secondary = nullptr;
       } else {
-        destroy_session(session_id, packet::SessionDestroyedReason::NO_PLAYERS);
+        destroy_session(session_id);
       }
     } else if(secondary == client) {
+      secondary->ready = false;
+      log_message("Disconnected client (client_id = "+std::to_string(client_id)+") from session (session_id = "+std::to_string(session_id)+")");
       packet::make_session_disconnect_status_packet(&packet, session_id, client_id, packet::SessionDisconnectStatus::SUCCESS);
+      secondary->session = nullptr;
       session->secondary = nullptr;
       send_packet(&client->addr, packet);
       if(has_main) {
+        main->ready = false;
         send_packet(&main->addr, packet);
-      } else {
-        destroy_session(session_id, packet::SessionDestroyedReason::NO_PLAYERS);
       }
-    } // there cannot be a session without any clients
-  } else {
-    ;
+    } else { // if there are no players in session then it means that client did not receive last message about status
+      log_message("RESEND: Disconnected client (client_id = "+std::to_string(client_id)+") from session (session_id = "+std::to_string(session_id)+")");
+      packet::make_session_disconnect_status_packet(&packet, session_id, client_id, packet::SessionDisconnectStatus::SUCCESS);
+      send_packet(&client->addr, packet);
+    }
+  } else { // if session is available that means that client did not receive last message about status
+    log_message("RESEND: Disconnected client (client_id = "+std::to_string(client_id)+") from session (session_id = "+std::to_string(session_id)+")");
+    packet::make_session_disconnect_status_packet(&packet, session_id, client_id, packet::SessionDisconnectStatus::SUCCESS);
+    send_packet(&client->addr, packet);
   }
 }
 
-void connect_to_session(uint16_t session_id, uint16_t client, packet::ClientType type) {
-  ;
+void assign_to_session(uint16_t session_id, uint16_t client_id) {
+  Session *session = &sessions[session_id];
+  Client *client = &clients[client_id];
+
+  set_client_msg_time(client_id);
+
+  packet::SendData packet;
+
+  if(session->available) {
+    log_message("Failed assigning client (client_id = "+std::to_string(client_id)+") to session (session_id = "+std::to_string(session_id)+"). Session is not used.");
+    send_could_not_assign_to_session_packet(&client->addr, session_id);
+    return;
+  }
+
+  bool has_main = session->main != nullptr;
+  bool has_secondary = session->secondary != nullptr;
+
+  if(has_main && has_secondary) { // both places are occupied
+    if(session->main == client) {
+      log_message("RESEND: Assigned client (client_id = "+std::to_string(client_id)+") to session (session_id = "+std::to_string(session_id)+") as main");
+      send_assigned_to_session_packet(&client->addr, session_id, client_id, packet::ClientType::MAIN);
+    } else if(session->secondary != client) {
+      log_message("RESEND: Assigned client (client_id = "+std::to_string(client_id)+") to session (session_id = "+std::to_string(session_id)+") as secondary");
+      send_assigned_to_session_packet(&client->addr, session_id, client_id, packet::ClientType::SECONDARY);
+      send_assigned_to_session_packet(&client->addr, session_id, session->main->id, packet::ClientType::MAIN);
+    } else {
+      log_message("Failed assigning client (client_id = "+std::to_string(client_id)+") to session (session_id = "+std::to_string(session_id)+"). Session is full.");
+      send_could_not_assign_to_session_packet(&client->addr, session_id);
+    }
+  } else { // assign secondary
+    log_message("Assigned client (client_id = "+std::to_string(client_id)+") to session (session_id = "+std::to_string(session_id)+") as secondary");
+    packet::make_assigned_to_session_packet(&packet, session_id, client_id, packet::ClientType::SECONDARY);
+    session->secondary = client;
+    client->session = session;
+    send_packet(&session->main->addr, packet);
+    send_packet(&session->secondary->addr, packet);
+    send_assigned_to_session_packet(&client->addr, session_id, session->main->id, packet::ClientType::MAIN);
+  } // does not need to assign main. Every session has main if it's available.
+}
+
+void set_client_ready(uint16_t client_id, uint16_t session_id, packet::Readiness readiness) {
+  Client *client = &clients[client_id];
+  Session *session = &sessions[session_id];
+
+  set_client_msg_time(client_id);
+
+  bool has_main = session->main != nullptr;
+  bool has_secondary = session->secondary != nullptr;
+
+  Client *main = session->main, *secondary = session->secondary;
+
+  if(!client->available && client->session == session) {
+    if(client->session->game_active) {
+      send_game_started_packet(&main->addr, session_id);
+      send_game_started_packet(&secondary->addr, session_id);
+      return;
+    }
+
+    client->ready = readiness == packet::Readiness::READY;
+
+    if(main == client && has_secondary) {
+      send_inform_client_ready_packet(&client->addr, session_id, client_id, readiness);
+      send_inform_client_ready_packet(&secondary->addr, session_id, client_id, readiness);
+    } else {
+      send_inform_client_ready_packet(&client->addr, session_id, client_id, readiness);
+      send_inform_client_ready_packet(&main->addr, session_id, client_id, readiness);
+    }
+
+    if(has_main && has_secondary && main->ready && secondary->ready) {
+      session->game_active = true;
+      send_game_started_packet(&main->addr, session_id);
+      send_game_started_packet(&secondary->addr, session_id);
+    }
+  }
+}
+
+void set_ball_pos(uint16_t session_id, types::Vector2 &ball_pos, types::Vector2 &ball_dir) {
+  Session *session = &sessions[session_id];
+
+  if(session->game_active) {
+    session->ball_pos = ball_pos;
+    session->ball_dir = ball_dir;
+
+    set_client_msg_time(session->main->id);
+
+    send_ball_pos_packet(&session->secondary->addr, session);
+  }
+}
+
+void set_player_pos(uint16_t client_id, types::Vector2 &player_pos, types::Vector2 &player_dir) {
+  Client *client = &clients[client_id];
+  Session *session = client->session;
+
+  set_client_msg_time(client_id);
+
+  if(client->available) return;
+  if(session == nullptr) return;
+  
+  client->pos = player_pos;
+  client->dir = player_dir;
+
+  if(client != session->main) {
+    send_player_pos_packet(&session->main->addr, client);
+  } else {
+    send_player_pos_packet(&session->secondary->addr, client);
+  }
+}
+
+void score_point(uint16_t session_id, uint16_t client_id) {
+  Session *session = &sessions[session_id];
+  Client *client = &clients[client_id];
+
+  set_client_msg_time(client_id);
+
+  if(session->available || !session->game_active) return;
+  if(client->available || client->session != session) return;
+
+  client->score++;
+
+  send_point_scored_packet(&session->secondary->addr, session);
+}
+
+void handle_client_alive(sockaddr_in addr, uint16_t client_id) {
+  Client *client = &clients[client_id];
+
+  if(client->available) {
+    send_disconnected_packet(&addr);
+    return;
+  }
+
+  set_client_msg_time(client_id);
+}
+
+void set_client_msg_time(uint16_t client_id) {
+  clients[client_id].last_msg_timestamp = std::chrono::system_clock::now();
+}
+
+// send packet functions
+void send_connected_packet(sockaddr_in *addr, uint16_t client_id) {
+  packet::SendData packet;
+  packet::make_connected_packet(&packet, client_id);
+  send_packet(addr, packet);
+}
+
+void send_could_not_connect_packet(sockaddr_in *addr) {
+  packet::SendData packet;
+  packet::make_could_not_connect_packet(&packet);
+  send_packet(addr, packet);
+}
+
+void send_disconnected_packet(sockaddr_in *addr) {
+  packet::SendData packet;
+  packet::make_disconnected_packet(&packet);
+  send_packet(addr, packet);
+}
+
+void send_assigned_to_session_packet(sockaddr_in *addr, uint16_t session_id, uint16_t client_id, packet::ClientType type) {
+  packet::SendData packet;
+  packet::make_assigned_to_session_packet(&packet, session_id, client_id, type);
+  send_packet(addr, packet);
+}
+
+void send_could_not_create_session(sockaddr_in *addr) {
+  packet::SendData packet;
+  packet::make_could_not_create_session_packet(&packet);
+  send_packet(addr, packet);
+}
+
+void send_session_disconnect_status_packet(sockaddr_in *addr, uint16_t session_id, uint16_t client_id, packet::SessionDisconnectStatus status) {
+  packet::SendData packet;
+  packet::make_session_disconnect_status_packet(&packet, session_id, client_id, status);
+  send_packet(addr, packet);
+}
+
+void send_could_not_assign_to_session_packet(sockaddr_in *addr, uint16_t session_id) {
+  packet::SendData packet;
+  packet::make_could_not_assign_to_session_packet(&packet, session_id);
+  send_packet(addr, packet);
+}
+
+void send_inform_client_ready_packet(sockaddr_in *addr, uint16_t session_id, uint16_t client_id, packet::Readiness readiness) {
+  packet::SendData packet;
+  packet::make_inform_client_ready_packet(&packet, session_id, client_id, readiness);
+  send_packet(addr, packet);
+}
+
+void send_game_started_packet(sockaddr_in *addr, uint16_t session_id) {
+  packet::SendData packet;
+  packet::make_game_started_packet(&packet, session_id);
+  send_packet(addr, packet);
+}
+
+void send_ball_pos_packet(sockaddr_in *addr, Session *session) {
+  packet::SendData packet;
+  packet::make_inform_ball_pos_packet(&packet, session->ball_pos, session->ball_dir);
+  send_packet(addr, packet);
+}
+
+void send_player_pos_packet(sockaddr_in *addr, Client *client) {
+  packet::SendData packet;
+  packet::make_inform_player_pos_packet(&packet, client->id, client->pos, client->dir);
+  send_packet(addr, packet);
+}
+
+void send_point_scored_packet(sockaddr_in *addr, Session *session) {
+  packet::SendData packet;
+  packet::make_inform_point_scored_packet(&packet, session->id, session->main->score, session->secondary->score);
+  send_packet(addr, packet);
 }

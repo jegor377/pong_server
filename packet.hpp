@@ -8,6 +8,8 @@
 #include <cstring>
 #include <map>
 
+#include "types.hpp"
+
 namespace packet {
   const int MAX_PACKET_SIZE = 512;
   const int MIN_PACKET_SIZE = 8;
@@ -31,7 +33,7 @@ namespace packet {
     CREATE_SESSION = 4,
     ASSIGNED_TO_SESSION = 5,
     COULD_NOT_CREATE_SESSION = 6,
-    SESSION_NO_LONGER_EXIST = 7,
+    INFORM_CLIENT_READY = 7,
     ASSIGN_TO_SESSION = 8,
     COULD_NOT_ASSIGN_TO_SESSION = 9,
     DISCONNECT_FROM_SESSION = 10,
@@ -57,28 +59,22 @@ namespace packet {
     { CREATE_SESSION, 2 },
     { ASSIGNED_TO_SESSION, 5 },
     { COULD_NOT_CREATE_SESSION, 0 },
-    { SESSION_NO_LONGER_EXIST, 2 },
+    { INFORM_CLIENT_READY, 5 },
     { ASSIGN_TO_SESSION, 4 },
     { COULD_NOT_ASSIGN_TO_SESSION, 2 },
     { DISCONNECT_FROM_SESSION, 4 },
     { SESSION_DISCONNECT_STATUS, 5 },
     { SET_READY, 5 },
     { GAME_STARTED, 2 },
-    { SET_BALL_POS, 28 },
+    { SET_BALL_POS, 26 },
     { INFORM_BALL_POS, 24 },
-    { SET_PLAYER_POS, 28 },
-    { INFORM_PLAYER_POS, 28 },
+    { SET_PLAYER_POS, 26 },
+    { INFORM_PLAYER_POS, 26 },
     { POINT_SCORED, 4 },
     { INFORM_POINT_SCORED, 10 },
     { INFORM_WON, 4 },
     { IM_ALIVE, 0 },
     { DISCONNECTED, 0 }
-  };
-
-  enum SessionDestroyedReason {
-    UNKNOWN = 0,
-    PLAYER_LEFT = 1,
-    NO_PLAYERS = 2
   };
 
   enum ClientType {
@@ -89,6 +85,11 @@ namespace packet {
   enum SessionDisconnectStatus {
     SUCCESS = 1,
     FAILURE = 0
+  };
+
+  enum Readiness {
+    READY = 1,
+    NOT_READY = 0
   };
 
   struct SendData {
@@ -104,9 +105,14 @@ namespace packet {
   void make_could_not_connect_packet(SendData *packet);
   void make_disconnected_packet(SendData *packet);
   void make_assigned_to_session_packet(SendData *packet, uint16_t session_id, uint16_t client_id, ClientType type);
-  void make_could_not_create_session(SendData *packet);
-  void make_session_no_longer_exists_packet(SendData *packet, uint16_t session_id);
+  void make_could_not_create_session_packet(SendData *packet);
   void make_session_disconnect_status_packet(SendData *packet, uint16_t session_id, uint16_t client_id, SessionDisconnectStatus status);
+  void make_could_not_assign_to_session_packet(SendData *packet, uint16_t session_id);
+  void make_inform_client_ready_packet(SendData *packet, uint16_t session_id, uint16_t client_id, Readiness readiness);
+  void make_game_started_packet(SendData *packet, uint16_t session_id);
+  void make_inform_ball_pos_packet(SendData *packet, types::Vector2 ball_pos, types::Vector2 ball_dir);
+  void make_inform_player_pos_packet(SendData *packet, uint16_t client_id, types::Vector2 player_pos, types::Vector2 player_dir);
+  void make_inform_point_scored_packet(SendData *packet, uint16_t session_id, uint32_t main_score, uint32_t secondary_score);
 
   bool verify_packet(Packet &packet);
   

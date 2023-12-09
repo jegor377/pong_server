@@ -162,4 +162,5 @@ CMakeFiles/server.dir/packet.cpp.o: \
  /usr/include/c++/9/bits/stl_map.h /usr/include/c++/9/tuple \
  /usr/include/c++/9/array /usr/include/c++/9/bits/uses_allocator.h \
  /usr/include/c++/9/bits/invoke.h /usr/include/c++/9/bits/stl_multimap.h \
- /usr/include/c++/9/bits/erase_if.h
+ /usr/include/c++/9/bits/erase_if.h \
+ /mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr\ 5/server/types.hpp
