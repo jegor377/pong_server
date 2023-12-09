@@ -90,11 +90,12 @@ void init_sessions();
 int find_available_client_id();
 int find_available_session_id();
 void use_client(uint16_t id, sockaddr_in addr);
-void use_session(uint16_t id);
+void use_session(uint16_t id, uint16_t main_id);
 void disconnect_stale_clients();
 void disconnect_client(uint16_t id, bool inform);
-void destroy_session(uint16_t id, uint8_t reason);
+void destroy_session(uint16_t id, packet::SessionDestroyedReason reason);
 void connect_client(sockaddr_in addr);
+void create_session(uint16_t main_id);
 
 int main() {
   sem_init(&free_space, 0, MAX_PACKET_COUNT);
@@ -249,8 +250,12 @@ void process_packets() {
           connect_client(packet.clientaddr);
         } break;
         case packet::PacketType::DISCONNECT: {
-          uint16_t client_id = packet::get_client_id_from_packet(packet, 0);
+          uint16_t client_id = packet::get_id_from_packet(packet, 0);
           disconnect_client(client_id, false);
+        } break;
+        case packet::PacketType::CREATE_SESSION: {
+          uint16_t main_id = packet::get_id_from_packet(packet, 0);
+          create_session(main_id);
         } break;
       }
     }
@@ -296,8 +301,9 @@ void use_client(uint16_t id, sockaddr_in addr) {
   clients[id].addr = addr;
 }
 
-void use_session(uint16_t id) {
+void use_session(uint16_t id, uint16_t main_id) {
   sessions[id].available = false;
+  sessions[id].main = &clients[main_id];
 }
 
 void disconnect_stale_clients() {
@@ -329,32 +335,14 @@ void disconnect_client(uint16_t id, bool inform) {
   log_message("Disconnected client with id = " + std::to_string(id));
 }
 
-void destroy_session(uint16_t id, uint8_t reason) {
-  packet::SendData packet;
-  packet::make_session_no_longer_exist_packet(&packet, id, reason);
-  sockaddr_in main_addr, secondary_addr;
-  bool main_exist = false, secondary_exist = false;
-
-  if(sessions[id].main != nullptr) {
-    main_addr = sessions[id].main->addr;
-    main_exist = true;
-  }
-
-  if(sessions[id].secondary != nullptr) {
-    secondary_addr = sessions[id].secondary->addr;
-    secondary_exist = true;
-  }
-
+void destroy_session(uint16_t id, packet::SessionDestroyedReason reason) {
   sessions[id].available = true;
   sessions[id].main = nullptr;
   sessions[id].secondary = nullptr;
-
-  if(main_exist) send_packet(&main_addr, packet);
-  if(secondary_exist) send_packet(&secondary_addr, packet);
 }
 
 void connect_client(sockaddr_in addr) {
-  uint16_t available_id = find_available_client_id();
+  int available_id = find_available_client_id();
   packet::SendData response;
   if(available_id != -1) {
     use_client(available_id, addr);
@@ -393,4 +381,58 @@ void process_logs() {
 
     std::cout << log_message << "\n";
   }
+}
+
+void create_session(uint16_t main_id) {
+  int available_id = find_available_session_id();
+  packet::SendData packet;
+  if(available_id != -1) {
+    use_session(available_id, main_id);
+    packet::make_assigned_to_session_packet(&packet, available_id, main_id, packet::ClientType::MAIN);
+  } else {
+    packet::make_could_not_create_session(&packet);
+  }
+  send_packet(&clients[main_id].addr, packet);
+}
+
+void disconnect_from_session(uint16_t session_id, uint16_t client_id) {
+  Session *session = &sessions[session_id];
+  Client *client = &clients[client_id];
+  Client *main = session->main;
+  Client *secondary = session->secondary;
+
+  packet::SendData packet;
+  bool has_main = main != nullptr;
+  bool has_secondary = secondary != nullptr;
+  
+
+  if(!session->available) {
+    if(main == client) {
+      packet::make_session_disconnect_status_packet(&packet, session_id, client_id, packet::SessionDisconnectStatus::SUCCESS);
+      session->main = nullptr;
+      send_packet(&client->addr, packet);
+      if(has_secondary) {
+        send_packet(&secondary->addr, packet);
+        session->main = secondary;
+        session->secondary = nullptr;
+      } else {
+        destroy_session(session_id, packet::SessionDestroyedReason::NO_PLAYERS);
+      }
+    } else if(secondary == client) {
+      packet::make_session_disconnect_status_packet(&packet, session_id, client_id, packet::SessionDisconnectStatus::SUCCESS);
+      session->secondary = nullptr;
+      send_packet(&client->addr, packet);
+      if(has_main) {
+        send_packet(&main->addr, packet);
+      } else {
+        destroy_session(session_id, packet::SessionDestroyedReason::NO_PLAYERS);
+      }
+    } // there cannot be a session without any clients
+  } else {
+    ;
+  }
+}
+
+void connect_to_session(uint16_t session_id, uint16_t client, packet::ClientType type) {
+  ;
 }

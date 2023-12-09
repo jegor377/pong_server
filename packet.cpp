@@ -45,18 +45,6 @@ namespace packet {
     );
   }
 
-  void make_session_no_longer_exist_packet(SendData *packet, uint16_t session_id, uint8_t reason) {
-    uint8_t data[3];
-    memcpy(data, (uint8_t*)&session_id, sizeof(uint16_t));
-    data[2] = reason;
-    make_packet(
-      packet,
-      PacketType::SESSION_NO_LONGER_EXIST,
-      data,
-      3
-    );
-  }
-
   void make_disconnected_packet(SendData *packet) {
     make_packet(
       packet,
@@ -66,11 +54,55 @@ namespace packet {
     );
   }
 
+  void make_assigned_to_session_packet(SendData *packet, uint16_t session_id, uint16_t client_id, ClientType type) {
+    uint8_t data[5];
+    memcpy(data, reinterpret_cast<uint8_t*>(&session_id), sizeof(uint16_t));
+    memcpy(&data[2], reinterpret_cast<uint8_t*>(&client_id), sizeof(uint16_t));
+    data[4] = (uint8_t)type;
+    make_packet(
+      packet,
+      PacketType::ASSIGNED_TO_SESSION,
+      data,
+      5
+    );
+  }
+
+  void make_could_not_create_session(SendData *packet) {
+    make_packet(
+      packet,
+      PacketType::COULD_NOT_CREATE_SESSION,
+      nullptr,
+      0
+    );
+  }
+
+  void make_session_no_longer_exists_packet(SendData *packet, uint16_t session_id) {
+    make_packet(
+      packet,
+      PacketType::SESSION_NO_LONGER_EXIST,
+      reinterpret_cast<uint8_t*>(&session_id),
+      sizeof(uint16_t)
+    );
+  }
+
+  void make_session_disconnect_status_packet(SendData *packet, uint16_t session_id, uint16_t client_id, SessionDisconnectStatus status) {
+    uint8_t data[5];
+    memcpy(data, reinterpret_cast<uint8_t*>(&session_id), sizeof(uint16_t));
+    memcpy(&data[2], reinterpret_cast<uint8_t*>(&client_id), sizeof(uint16_t));
+    data[4] = (uint8_t)status;
+    make_packet(
+      packet,
+      PacketType::SESSION_DISCONNECT_STATUS,
+      data,
+      5
+    );
+  }
+
   bool verify_packet(Packet &packet) {
     return packet.size == packet_data_size[packet.type];
   }
 
-  uint16_t get_client_id_from_packet(Packet &packet, uint16_t offset) {
+  uint16_t get_id_from_packet(Packet &packet, uint16_t offset) {
     return *reinterpret_cast<uint16_t*>(&packet.data[offset]);
   }
 }

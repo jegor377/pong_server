@@ -167,14 +167,20 @@ Informacja od serwera o przypisaniu klienta do sesji. Przychodzi też jak ktoś 
 Dane:
 
 ```
-[session_id:2][main_id:2][secondary_id:2]
+[session_id:2][client_id:2][type:1]
 ```
 
-| Nazwa        | Typ      | Opis                          |
-| ------------ | -------- | ----------------------------- |
-| session_id   | `uint16` | Identyfikator sesji           |
-| main_id      | `uint16` | Identyfikator maina           |
-| secondary_id | `uint16` | Identyfikator drugiego gracza |
+| Nazwa      | Typ      | Opis                  |
+| ---------- | -------- | --------------------- |
+| session_id | `uint16` | Identyfikator sesji   |
+| client_id  | `uint16` | Identyfikator klienta |
+| type       | `uint8`  | Typ klienta           |
+
+#### Typy klienta
+
+- 0 - main
+
+- 1 - secondary
 
 ### 6: Nie udało się stworzyć sesji (Serwer -> Klient)
 
@@ -189,19 +195,12 @@ Informacja od serwera o zniszczeniu sesji.
 Dane:
 
 ```
-[session_id:2][reason:1]
+[session_id:2]
 ```
 
 | Nazwa      | Typ      | Opis                |
 | ---------- | -------- | ------------------- |
 | session_id | `uint16` | Identyfikator sesji |
-| reason     | `uint8`  | Powód               |
-
-#### Możliwe powody
-
-- 0 - nieznany
-
-- 1 - przeciwnik wyszedł z sesji
 
 ### 8: Przyłącz do sesji (Klient -> Serwer)
 
@@ -249,17 +248,19 @@ Dane:
 
 ### 11: Status prośby o wyjście z sesji (Serwer -> Klient)
 
+Status prośby o wyjście z sesji. Jeśli main wyjdzie z sesji i istnieje drugi klient, to on się staje mainem.
+
 Dane:
 
 ```
-[session_id:2][client_id:2][success:1]
+[session_id:2][client_id:2][status:1]
 ```
 
 | Nazwa      | Typ      | Opis                                              |
 | ---------- | -------- | ------------------------------------------------- |
 | session_id | `uint16` | Identyfikator sesji                               |
 | client_id  | `uint16` | Identyfikator klienta, który chciał wyjść z sesji |
-| success    | `uint8`  | Czy mu się udało wyjść z sesji (1 - tak, 0 - nie) |
+| status     | `uint8`  | Czy mu się udało wyjść z sesji (1 - tak, 0 - nie) |
 
 ### 12: Ustaw gotowość do gry (Klient -> Serwer)
 

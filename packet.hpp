@@ -28,7 +28,7 @@ namespace packet {
     CONNECTED = 1,
     COULD_NOT_CONNECT = 2,
     DISCONNECT = 3,
-    MAKE_SESSION = 4,
+    CREATE_SESSION = 4,
     ASSIGNED_TO_SESSION = 5,
     COULD_NOT_CREATE_SESSION = 6,
     SESSION_NO_LONGER_EXIST = 7,
@@ -54,10 +54,10 @@ namespace packet {
     { CONNECTED, 2 },
     { COULD_NOT_CONNECT, 2 },
     { DISCONNECT, 2 },
-    { MAKE_SESSION, 2 },
-    { ASSIGNED_TO_SESSION, 6 },
+    { CREATE_SESSION, 2 },
+    { ASSIGNED_TO_SESSION, 5 },
     { COULD_NOT_CREATE_SESSION, 0 },
-    { SESSION_NO_LONGER_EXIST, 3 },
+    { SESSION_NO_LONGER_EXIST, 2 },
     { ASSIGN_TO_SESSION, 4 },
     { COULD_NOT_ASSIGN_TO_SESSION, 2 },
     { DISCONNECT_FROM_SESSION, 4 },
@@ -77,7 +77,18 @@ namespace packet {
 
   enum SessionDestroyedReason {
     UNKNOWN = 0,
-    PLAYER_LEFT = 1
+    PLAYER_LEFT = 1,
+    NO_PLAYERS = 2
+  };
+
+  enum ClientType {
+    MAIN = 0,
+    SECONDARY = 1
+  };
+
+  enum SessionDisconnectStatus {
+    SUCCESS = 1,
+    FAILURE = 0
   };
 
   struct SendData {
@@ -92,9 +103,12 @@ namespace packet {
   void make_connected_packet(SendData *packet, uint16_t client_id);
   void make_could_not_connect_packet(SendData *packet);
   void make_disconnected_packet(SendData *packet);
-  void make_session_no_longer_exist_packet(SendData *packet, uint16_t session_id, uint8_t reason);
+  void make_assigned_to_session_packet(SendData *packet, uint16_t session_id, uint16_t client_id, ClientType type);
+  void make_could_not_create_session(SendData *packet);
+  void make_session_no_longer_exists_packet(SendData *packet, uint16_t session_id);
+  void make_session_disconnect_status_packet(SendData *packet, uint16_t session_id, uint16_t client_id, SessionDisconnectStatus status);
 
   bool verify_packet(Packet &packet);
   
-  uint16_t get_client_id_from_packet(Packet &packet, uint16_t offset);
+  uint16_t get_id_from_packet(Packet &packet, uint16_t offset);
 }
