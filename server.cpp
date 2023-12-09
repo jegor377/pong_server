@@ -92,8 +92,8 @@ int find_available_session_id();
 void use_client(uint16_t id, sockaddr_in addr);
 void use_session(uint16_t id);
 void disconnect_stale_clients();
-void disconnect_client(uint16_t id);
-void destroySession(uint16_t id);
+void disconnect_client(uint16_t id, bool inform);
+void destroy_session(uint16_t id, uint8_t reason);
 void connect_client(sockaddr_in addr);
 
 int main() {
@@ -164,6 +164,7 @@ void listen_for_packets() {
     n = recvfrom(sockfd, buffer, packet::MAX_PACKET_SIZE, MSG_WAITALL, (struct sockaddr *) &clientaddr, &len);
 
     std::ostringstream oss;
+    oss << "DATA ";
     for(int i = 0; i < n; i++) {
       oss << std::hex << +(uint8_t)buffer[i] << " ";
     }
@@ -241,11 +242,15 @@ void process_packets() {
     }
     sem_post(&free_space);
 
-    {
+    if(packet::verify_packet(packet)) {
       lock_guard data_lock(clients_sessions_mutex);
       switch(packet.type) {
         case packet::PacketType::CONNECT: {
           connect_client(packet.clientaddr);
+        } break;
+        case packet::PacketType::DISCONNECT: {
+          uint16_t client_id = packet::get_client_id_from_packet(packet, 0);
+          disconnect_client(client_id, false);
         } break;
       }
     }
@@ -301,24 +306,32 @@ void disconnect_stale_clients() {
     if(!clients[id].available) {
       std::chrono::duration<double> elapsed_seconds = end - clients[id].last_msg_timestamp;
       if(elapsed_seconds.count() > MAX_STALE_TIME_S) {
-        disconnect_client(id);
+        disconnect_client(id, true);
       }
     }
   }
 }
 
-void disconnect_client(uint16_t id) {
+void disconnect_client(uint16_t id, bool inform) {
+  if(clients[id].available == true) {
+    log_message("Tried to disconnect already disconnected client with id = " + std::to_string(id));
+    return;
+  }
+  packet::SendData packet;
+  packet::make_disconnected_packet(&packet);
+  sockaddr_in client_addr = clients[id].addr;
   clients[id].available = true;
   if(clients[id].session != nullptr) {
-    destroySession(clients[id].session->id);
+    destroy_session(clients[id].session->id, packet::SessionDestroyedReason::PLAYER_LEFT);
   }
   clients[id].session = nullptr;
+  if(inform) send_packet(&client_addr, packet);
   log_message("Disconnected client with id = " + std::to_string(id));
 }
 
-void destroySession(uint16_t id) {
+void destroy_session(uint16_t id, uint8_t reason) {
   packet::SendData packet;
-  packet::make_session_no_longer_exist_packet(&packet, id);
+  packet::make_session_no_longer_exist_packet(&packet, id, reason);
   sockaddr_in main_addr, secondary_addr;
   bool main_exist = false, secondary_exist = false;
 

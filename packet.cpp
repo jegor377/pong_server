@@ -45,7 +45,32 @@ namespace packet {
     );
   }
 
-  void make_session_no_longer_exist_packet(SendData *packet, uint16_t session_id) {
-    ;
+  void make_session_no_longer_exist_packet(SendData *packet, uint16_t session_id, uint8_t reason) {
+    uint8_t data[3];
+    memcpy(data, (uint8_t*)&session_id, sizeof(uint16_t));
+    data[2] = reason;
+    make_packet(
+      packet,
+      PacketType::SESSION_NO_LONGER_EXIST,
+      data,
+      3
+    );
+  }
+
+  void make_disconnected_packet(SendData *packet) {
+    make_packet(
+      packet,
+      PacketType::DISCONNECTED,
+      nullptr,
+      0
+    );
+  }
+
+  bool verify_packet(Packet &packet) {
+    return packet.size == packet_data_size[packet.type];
+  }
+
+  uint16_t get_client_id_from_packet(Packet &packet, uint16_t offset) {
+    return *reinterpret_cast<uint16_t*>(&packet.data[offset]);
   }
 }

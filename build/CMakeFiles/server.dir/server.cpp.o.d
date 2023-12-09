@@ -215,4 +215,6 @@ CMakeFiles/server.dir/server.cpp.o: \
  /usr/include/c++/9/bits/quoted_string.h /usr/include/c++/9/sstream \
  /usr/include/c++/9/bits/sstream.tcc \
  /mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr\ 5/server/types.hpp \
- /mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr\ 5/server/packet.hpp
+ /mnt/c/Users/isan/Pliki/Politechnika/nauka/Sieci/semestr\ 5/server/packet.hpp \
+ /usr/include/c++/9/map /usr/include/c++/9/bits/stl_tree.h \
+ /usr/include/c++/9/bits/stl_map.h /usr/include/c++/9/bits/stl_multimap.h
