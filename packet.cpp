@@ -23,8 +23,10 @@ namespace packet {
     memcpy(packet->data, PREAMBLE, PREAMBLE_SIZE);
     packet->data[3] = type;
     memcpy(&packet->data[4], &size, sizeof(size));
-    uint16_t crc = crc16(packet->data, PREAMBLE_SIZE + 1 + size);
-    memcpy(&packet->data[4 + size], &crc, sizeof(crc));
+    memcpy(&packet->data[6], data, size);
+    uint16_t crc = crc16(packet->data, PREAMBLE_SIZE + 3 + size);
+    memcpy(&packet->data[6 + size], &crc, sizeof(crc));
+    packet->size = PREAMBLE_SIZE + sizeof(uint8_t) + sizeof(uint16_t) + size + sizeof(uint16_t);
   }
 
   void make_connected_packet(SendData *packet, uint16_t client_id) {
