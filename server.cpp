@@ -60,6 +60,7 @@ struct Client {
   uint32_t score;
   types::Vector2 pos;
   types::Vector2 dir;
+  bool scheduled_to_disconnect;
 };
 
 struct Session {
@@ -94,7 +95,7 @@ void log_message(std::string message);
 void send_packet(sockaddr_in *addr, packet::SendData *packet);
 void init_clients();
 void init_sessions();
-int find_available_client_id();
+int find_available_client_id(bool include_scheduled_to_disconnect);
 int find_available_session_id();
 void use_client(uint16_t id, sockaddr_in addr);
 void use_session(uint16_t id, uint16_t main_id);
@@ -349,9 +350,9 @@ void init_sessions() {
   }
 }
 
-int find_available_client_id() {
+int find_available_client_id(bool include_scheduled_to_disconnect) {
   for(int id = 0; id < CLIENT_COUNT; id++) {
-    if(clients[id].available) return id;
+    if(clients[id].available || (include_scheduled_to_disconnect && clients[id].scheduled_to_disconnect)) return id;
   }
   return -1;
 }
@@ -368,6 +369,7 @@ void use_client(uint16_t id, sockaddr_in addr) {
   client->available = false;
   client->last_msg_timestamp = std::chrono::system_clock::now();
   client->addr = addr;
+  client->scheduled_to_disconnect = false;
 }
 
 void use_session(uint16_t id, uint16_t main_id) {
@@ -381,7 +383,7 @@ void disconnect_stale_clients() {
     if(!clients[id].available) {
       std::chrono::duration<double> elapsed_seconds = end - clients[id].last_msg_timestamp;
       if(elapsed_seconds.count() > MAX_STALE_TIME_S) {
-        disconnect_client(id, true);
+        clients[id].scheduled_to_disconnect = true;
       }
     }
   }
@@ -414,9 +416,13 @@ void destroy_session(uint16_t id) {
 }
 
 void connect_client(sockaddr_in addr) {
-  int available_id = find_available_client_id();
+  int available_id = find_available_client_id(true);
   packet::SendData response;
   if(available_id != -1) {
+    if(clients[available_id].scheduled_to_disconnect) {
+        log_message("Disconnected stale client when new tried to connect on id = " + std::to_string(available_id));
+        disconnect_client(available_id, true);
+    }
     use_client(available_id, addr);
     packet::make_connected_packet(&response, available_id);
     char *ip = inet_ntoa(addr.sin_addr);
@@ -657,6 +663,7 @@ void handle_client_alive(sockaddr_in addr, uint16_t client_id) {
   Client *client = &clients[client_id];
 
   if(client->available) {
+    log_message("Send info that client " + std::to_string(client_id) + " is not available.");
     send_disconnected_packet(&addr);
     return;
   }

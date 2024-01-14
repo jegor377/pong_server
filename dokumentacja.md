@@ -206,7 +206,7 @@ Dane:
 
 ### 8: Przyłącz do sesji (Klient -> Serwer)
 
-Prośba o przyłączenie klient do sesji. Jeśli się uda to serwer wyśle komunikat #5. Klient, który dołącza do sesji, nigdy nie jest gotowy.
+Prośba o przyłączenie klienta do sesji. Jeśli się uda to serwer wyśle komunikat #5. Klient, który dołącza do sesji, nigdy nie jest gotowy.
 
 Dane:
 
