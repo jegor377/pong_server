@@ -72,4 +72,6 @@ namespace types {
   uint32_t decode_uint32(const std::uint8_t *p_arr);
   unsigned int encode_float(float p_float, std::uint8_t *p_arr);
   float decode_float(const std::uint8_t *p_arr);
+
+	std::string vec2_to_str(Vector2 vec);
 }

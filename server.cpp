@@ -194,12 +194,12 @@ void listen_for_packets() {
   while(server_running) {
     n = recvfrom(sockfd, buffer, packet::MAX_PACKET_SIZE, MSG_WAITALL, (struct sockaddr *) &clientaddr, &len);
 
-    std::ostringstream oss;
-    oss << "DATA ";
-    for(int i = 0; i < n; i++) {
-      oss << std::hex << +(uint8_t)buffer[i] << " ";
-    }
-    log_message(oss.str());
+    // std::ostringstream oss;
+    // oss << "DATA ";
+    // for(int i = 0; i < n; i++) {
+    //   oss << std::hex << +(uint8_t)buffer[i] << " ";
+    // }
+    // log_message(oss.str());
     
     for(int i = 0; i < n;) {
       unsigned long bytes_available = n - i;
@@ -312,9 +312,10 @@ void process_packets() {
         } break;
         case packet::PacketType::SET_PLAYER_POS: {
           uint16_t client_id = packet::get_id_from_packet(packet, 0);
+
           types::Vector2 player_pos, player_dir;
-          player_pos = types::decode_vec2(&packet.data[4]);
-          player_dir = types::decode_vec2(&packet.data[4+12]);
+          player_pos = types::decode_vec2(&packet.data[2]);
+          player_dir = types::decode_vec2(&packet.data[2+12]);
           set_player_pos(client_id, player_pos, player_dir);
         } break;
         case packet::PacketType::POINT_SCORED: {
@@ -590,6 +591,7 @@ void set_client_ready(uint16_t client_id, uint16_t session_id, packet::Readiness
 
   if(!client->available && client->session == session) {
     if(client->session->game_active) {
+      log_message("Game session id = " + std::to_string(session->id) +  " already started");
       send_game_started_packet(&main->addr, session_id);
       send_game_started_packet(&secondary->addr, session_id);
       return;
@@ -607,6 +609,7 @@ void set_client_ready(uint16_t client_id, uint16_t session_id, packet::Readiness
 
     if(has_main && has_secondary && main->ready && secondary->ready) {
       session->game_active = true;
+      log_message("Game session id = " + std::to_string(session->id) +  " just started");
       send_game_started_packet(&main->addr, session_id);
       send_game_started_packet(&secondary->addr, session_id);
     }
@@ -634,7 +637,7 @@ void set_player_pos(uint16_t client_id, types::Vector2 &player_pos, types::Vecto
 
   if(client->available) return;
   if(session == nullptr) return;
-  
+
   client->pos = player_pos;
   client->dir = player_dir;
 

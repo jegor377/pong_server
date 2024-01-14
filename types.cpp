@@ -48,4 +48,8 @@ namespace types {
   Vector2 decode_vec2(uint8_t *bytes) {
     return *reinterpret_cast<Vector2*>(&bytes[4]);
   }
+
+  std::string vec2_to_str(Vector2 vec) {
+    return "{x = " + std::to_string(vec.x) + ", y = " + std::to_string(vec.y) + "}";
+  }
 }

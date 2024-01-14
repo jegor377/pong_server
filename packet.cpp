@@ -137,7 +137,7 @@ namespace packet {
   void make_inform_player_pos_packet(SendData *packet, uint16_t client_id, types::Vector2 player_pos, types::Vector2 player_dir) {
     const int size = 2 + 12 * 2;
     uint8_t data[size];
-    memcpy(data, reinterpret_cast<uint8_t*>(client_id), sizeof(uint16_t));
+    memcpy(data, reinterpret_cast<uint8_t*>(&client_id), sizeof(uint16_t));
     types::encode_vec2(player_pos, &data[2]);
     types::encode_vec2(player_dir, &data[2 + 12]);
     make_packet(
