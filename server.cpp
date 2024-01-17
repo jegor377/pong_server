@@ -124,7 +124,7 @@ void send_could_not_assign_to_session_packet(sockaddr_in *addr, uint16_t session
 void send_inform_client_ready_packet(sockaddr_in *addr, uint16_t session_id, uint16_t client_id, packet::Readiness readiness);
 void send_game_started_packet(sockaddr_in *addr, uint16_t session_id);
 void send_ball_pos_packet(sockaddr_in *addr, Session *session);
-void send_point_scored_packet(sockaddr_in *addr, Session *session);
+void send_point_scored_packet(sockaddr_in *addr, Session *session, uint16_t client_id);
 void send_player_pos_packet(sockaddr_in *addr, Client *client);
 
 int main() {
@@ -200,7 +200,11 @@ void listen_for_packets() {
     //   oss << std::hex << +(uint8_t)buffer[i] << " ";
     // }
     // log_message(oss.str());
-    
+
+#ifdef CALC_PROCESSED
+    int packets_processed = 0;
+#endif  
+  
     for(int i = 0; i < n;) {
       unsigned long bytes_available = n - i;
 
@@ -256,9 +260,15 @@ void listen_for_packets() {
 
           byte_pos = packet::PREAMBLE_SIZE;
           current_step = READ_PREAMBLE;
+#ifdef CALC_PROCESSED
+          packets_processed++;
+#endif
         } break;
       }
     }
+#ifdef CALC_PROCESSED
+    log_message("Processed " + std::to_string(packets_processed) + " packets.");
+#endif
   }
 }
 
@@ -610,6 +620,8 @@ void set_client_ready(uint16_t client_id, uint16_t session_id, packet::Readiness
     if(has_main && has_secondary && main->ready && secondary->ready) {
       session->game_active = true;
       log_message("Game session id = " + std::to_string(session->id) +  " just started");
+      main->score = 0;
+      secondary->score = 0;
       send_game_started_packet(&main->addr, session_id);
       send_game_started_packet(&secondary->addr, session_id);
     }
@@ -659,7 +671,7 @@ void score_point(uint16_t session_id, uint16_t client_id) {
 
   client->score++;
 
-  send_point_scored_packet(&session->secondary->addr, session);
+  send_point_scored_packet(&session->secondary->addr, session, client->id);
 }
 
 void handle_client_alive(sockaddr_in addr, uint16_t client_id) {
@@ -745,8 +757,8 @@ void send_player_pos_packet(sockaddr_in *addr, Client *client) {
   send_packet(addr, packet);
 }
 
-void send_point_scored_packet(sockaddr_in *addr, Session *session) {
+void send_point_scored_packet(sockaddr_in *addr, Session *session, uint16_t client_id) {
   packet::SendData packet;
-  packet::make_inform_point_scored_packet(&packet, session->id, session->main->score, session->secondary->score);
+  packet::make_inform_point_scored_packet(&packet, session->id, session->main->score, session->secondary->score, client_id);
   send_packet(addr, packet);
 }

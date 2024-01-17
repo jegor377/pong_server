@@ -148,12 +148,13 @@ namespace packet {
     );
   }
 
-  void make_inform_point_scored_packet(SendData *packet, uint16_t session_id, uint32_t main_score, uint32_t secondary_score) {
-    const int size = 2 + 4 + 4;
+  void make_inform_point_scored_packet(SendData *packet, uint16_t session_id, uint32_t main_score, uint32_t secondary_score, uint16_t client_id) {
+    const int size = 2 + 4 + 4 + 2;
     uint8_t data[size];
     memcpy(data, reinterpret_cast<uint8_t*>(&session_id), sizeof(uint16_t));
     memcpy(&data[2], reinterpret_cast<uint8_t*>(&main_score), sizeof(uint32_t));
     memcpy(&data[6], reinterpret_cast<uint8_t*>(&secondary_score), sizeof(uint32_t));
+    memcpy(&data[10], reinterpret_cast<uint8_t*>(&client_id), sizeof(uint16_t));
     make_packet(
       packet,
       PacketType::INFORM_POINT_SCORED,

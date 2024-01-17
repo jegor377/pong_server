@@ -71,7 +71,7 @@ namespace packet {
     { SET_PLAYER_POS, 26 },
     { INFORM_PLAYER_POS, 26 },
     { POINT_SCORED, 4 },
-    { INFORM_POINT_SCORED, 10 },
+    { INFORM_POINT_SCORED, 12 },
     { INFORM_WON, 4 },
     { IM_ALIVE, 0 },
     { DISCONNECTED, 0 }
@@ -112,7 +112,7 @@ namespace packet {
   void make_game_started_packet(SendData *packet, uint16_t session_id);
   void make_inform_ball_pos_packet(SendData *packet, types::Vector2 ball_pos, types::Vector2 ball_dir);
   void make_inform_player_pos_packet(SendData *packet, uint16_t client_id, types::Vector2 player_pos, types::Vector2 player_dir);
-  void make_inform_point_scored_packet(SendData *packet, uint16_t session_id, uint32_t main_score, uint32_t secondary_score);
+  void make_inform_point_scored_packet(SendData *packet, uint16_t session_id, uint32_t main_score, uint32_t secondary_score, uint16_t client_id);
 
   bool verify_packet(Packet &packet);
   

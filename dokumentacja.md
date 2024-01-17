@@ -379,14 +379,15 @@ Poinformowanie drugiego gracza o uzyskaniu punktu.
 Dane:
 
 ```
-[session_id:2][main_score:4][secondary_score:4]
+[session_id:2][main_score:4][secondary_score:4][client_id:2]
 ```
 
-| Nazwa           | Typ      | Opis                   |
-| --------------- | -------- | ---------------------- |
-| session_id      | `uint16` | Identyfikator sesji    |
-| main_score      | `uint32` | Punkty maina           |
-| secondary_score | `uint32` | Punkty drugiego gracza |
+| Nazwa           | Typ      | Opis                       |
+| --------------- | -------- | -------------------------- |
+| session_id      | `uint16` | Identyfikator sesji        |
+| main_score      | `uint32` | Punkty maina               |
+| secondary_score | `uint32` | Punkty drugiego gracza     |
+| client_id       | `uint16` | Klient, który zdobył punkt |
 
 ### 20: Poinformuj o wygraniu (Serwer -> Klient)
 
