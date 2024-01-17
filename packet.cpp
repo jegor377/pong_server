@@ -163,6 +163,19 @@ namespace packet {
     );
   }
 
+  void make_inform_player_won_packet(SendData *packet, uint16_t session_id, uint16_t client_id) {
+    const int size = 2 + 2;
+    uint8_t data[size];
+    memcpy(data, reinterpret_cast<uint8_t*>(&session_id), sizeof(uint16_t));
+    memcpy(&data[2], reinterpret_cast<uint8_t*>(&client_id), sizeof(uint16_t));
+    make_packet(
+      packet,
+      PacketType::INFORM_WON,
+      data,
+      size
+    );
+  }
+
   bool verify_packet(Packet &packet) {
     return packet.size == packet_data_size[packet.type];
   }

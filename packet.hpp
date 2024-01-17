@@ -113,6 +113,7 @@ namespace packet {
   void make_inform_ball_pos_packet(SendData *packet, types::Vector2 ball_pos, types::Vector2 ball_dir);
   void make_inform_player_pos_packet(SendData *packet, uint16_t client_id, types::Vector2 player_pos, types::Vector2 player_dir);
   void make_inform_point_scored_packet(SendData *packet, uint16_t session_id, uint32_t main_score, uint32_t secondary_score, uint16_t client_id);
+  void make_inform_player_won_packet(SendData *packet, uint16_t session_id, uint16_t client_id);
 
   bool verify_packet(Packet &packet);
   

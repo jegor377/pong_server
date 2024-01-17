@@ -33,6 +33,8 @@ const float MAX_STALE_TIME_S = 10.0;
 
 const int MAX_PACKET_COUNT = 100'000;
 
+const int POINTS_TO_WIN = 2;
+
 int sockfd;
 sockaddr_in servaddr;
 bool server_running = true;
@@ -126,6 +128,7 @@ void send_game_started_packet(sockaddr_in *addr, uint16_t session_id);
 void send_ball_pos_packet(sockaddr_in *addr, Session *session);
 void send_point_scored_packet(sockaddr_in *addr, Session *session, uint16_t client_id);
 void send_player_pos_packet(sockaddr_in *addr, Client *client);
+void send_player_won_packet(Session *session, Client *client);
 
 int main() {
   sem_init(&free_space, 0, MAX_PACKET_COUNT);
@@ -671,7 +674,15 @@ void score_point(uint16_t session_id, uint16_t client_id) {
 
   client->score++;
 
-  send_point_scored_packet(&session->secondary->addr, session, client->id);
+  if(session->main->score >= POINTS_TO_WIN) {
+    session->game_active = false;
+    send_player_won_packet(session, session->main);
+  } else if(session->secondary->score >= POINTS_TO_WIN) {
+    session->game_active = false;
+    send_player_won_packet(session, session->secondary);
+  } else {
+    send_point_scored_packet(&session->secondary->addr, session, client->id);
+  }
 }
 
 void handle_client_alive(sockaddr_in addr, uint16_t client_id) {
@@ -761,4 +772,11 @@ void send_point_scored_packet(sockaddr_in *addr, Session *session, uint16_t clie
   packet::SendData packet;
   packet::make_inform_point_scored_packet(&packet, session->id, session->main->score, session->secondary->score, client_id);
   send_packet(addr, packet);
+}
+
+void send_player_won_packet(Session *session, Client *client) {
+  packet::SendData packet;
+  packet::make_inform_player_won_packet(&packet, session->id, client->id);
+  send_packet(&session->main->addr, packet);
+  send_packet(&session->secondary->addr, packet);
 }
