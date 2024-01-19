@@ -33,7 +33,7 @@ const float MAX_STALE_TIME_S = 10.0;
 
 const int MAX_PACKET_COUNT = 100'000;
 
-const int POINTS_TO_WIN = 2;
+const int POINTS_TO_WIN = 10;
 
 int sockfd;
 sockaddr_in servaddr;
@@ -228,7 +228,7 @@ void listen_for_packets() {
           byte_pos++;
           i++;
         } break;
-        case READ_SIZE: { // do poprawienia pobieranie size
+        case READ_SIZE: {
           bytes_available = std::min(bytes_available, sizeof(uint16_t));
           memcpy(&packet.size, &buffer[i], bytes_available);
           memcpy(&bytes[byte_pos], &buffer[i], bytes_available);
@@ -236,7 +236,7 @@ void listen_for_packets() {
           byte_pos += bytes_available;
           i += bytes_available;
         } break;
-        case READ_DATA: { // do poprawienia pobieranie data
+        case READ_DATA: {
           bytes_available = std::min(bytes_available, (unsigned long)packet.size);
           memcpy(packet.data, &buffer[i], bytes_available);
           memcpy(&bytes[byte_pos], &buffer[i], bytes_available);
@@ -244,7 +244,7 @@ void listen_for_packets() {
           byte_pos += bytes_available;
           i += bytes_available;
         } break;
-        case READ_CRC: { // do poprawienia pobieranie crc
+        case READ_CRC: {
           bytes_available = std::min(bytes_available, sizeof(uint16_t));
           memcpy(&packet.crc, &buffer[i], bytes_available);
           i += bytes_available;
